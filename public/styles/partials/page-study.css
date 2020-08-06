@@ -102,9 +102,10 @@
     display: block;
 }
 
-.teacher-item footer button {
+.teacher-item footer .button {
     width: 20rem;
     height: 5.6rem;
+    margin-left: 1.6rem;
     background: var(--color-secondary);
     color: var(--color-button-text);
     border: 0;
@@ -116,7 +117,7 @@
     align-items: center;
     justify-content: space-evenly;
     transition: background 0.2s;
-    margin-left: 1.6rem;
+    text-decoration: none;
 }
 
 .teacher-item footer button:hover {
