@@ -1,54 +1,10 @@
-const proffys = [
-    {
-        name: "Diego Fernandes",
-        avatar: "https://avatars2.githubusercontent.com/u/2254731?s=460&amp;u=0ba16a79456c2f250e7579cb388fa18c5c2d7d65&amp;v=4",
-        whatsapp: 11965432949,
-        bio: "Entusiasta das melhores tecnologias de química avançada.<br><br>Apaixonado por explodir coisas em laboratório e por mudar a vida das pessoas através de experiências. Mais de 200.000 pessoas já passaram por uma das minhas explosões.",
-        subject: "Química",
-        cost: "20",
-        weekday: [0],
-        time_from: [720],
-        time_to: [1220]
-   },
-    {
-        name: "Diego Fernandes",
-        avatar: "https://avatars2.githubusercontent.com/u/2254731?s=460&amp;u=0ba16a79456c2f250e7579cb388fa18c5c2d7d65&amp;v=4",
-        whatsapp: 11965432949,
-        bio: "Entusiasta das melhores tecnologias de química avançada.<br><br>Apaixonado por explodir coisas em laboratório e por mudar a vida das pessoas através de experiências. Mais de 200.000 pessoas já passaram por uma das minhas explosões.",
-        subject: "Química",
-        cost: "20",
-        weekday: [0],
-        time_from: [720],
-        time_to: [1220]
-   }
-]
-
-const subjects = [
-    "Artes",
-    "Biologia",
-    "Ciências",
-    "Educação física",
-    "Física",
-    "Geografia",
-    "História",
-    "Matemática",
-    "Português",
-    "Química"
-]
-
-const weekdays = [
-    "Domingo",
-    "Segunda-feira",
-    "Terça-feira",
-    "Quarta-feira",
-    "Quinta-feira",
-    "Sexta-feira",
-    "Sábado"
-]
-
 const express = require('express')
 const server = express()
 const nunjucks = require('nunjucks')
+
+const database = require('./database/db.js')
+
+const { subjects, weekdays, getSubject, convertHoursToMinutes } = require('./utils/format.js')
 
 /* Configurar nunjucks */
 nunjucks.configure('src/views', {
@@ -59,12 +15,8 @@ nunjucks.configure('src/views', {
 /* Seta a pasta "Public" como path padrão de css, assets and js files */
 server.use(express.static("public"))
 
-/*------------------------------------/
-               Funções
-/------------------------------------*/
-function getSubject(subjectNumber){
-    return subjects[subjectNumber-1];
-}
+/* Possibilita receber os dados no req.body */
+server.use(express.urlencoded({ extended: true }))
 
 /*------------------------------------/
                Routes
@@ -77,24 +29,83 @@ server.get("/", (req, res) => {
     return res.render('index.html')
 })
 
-server.get("/study", (req, res) => {
+server.get("/study", async (req, res) => {
     /* Req.query armazena os dados do formulário mandados por URL */
-    return res.render('study.html', {proffys, filters: req.query, subjects, weekdays})
+    const filters = req.query
+
+    if (!filters.subject || !filters.weekday || !filters.time){
+        return res.render('study.html', {filters, subjects, weekdays})
+    }
+
+    //Converter horas em minutos
+    const timeToMinutes = convertHoursToMinutes(filters.time)
+
+    const query = `
+        SELECT classes.*, proffys.*
+        FROM proffys
+        JOIN classes ON (classes.proffy_id = proffys.id)
+        WHERE EXISTS (
+            SELECT class_schedule.*
+            FROM class_schedule
+            WHERE class_schedule.class_id = classes.id
+            AND class_schedule.weekday = ${filters.weekday}
+            AND class_schedule.time_from <= ${timeToMinutes}
+            AND class_schedule.time_to > ${timeToMinutes}
+        )
+        AND classes.subject = ${filters.subject}
+    `
+
+    try {
+        const db = await database
+        const proffys = await db.all(query)
+        proffys.map(proffy => {
+            proffy.subject = getSubject(proffy.subject)
+        })
+        return res.render('study.html', {proffys, filters, subjects, weekdays})
+    } catch (error) {
+        console.log(error)
+    }
 })
 
 server.get("/give-classes", (req, res) => {
-    const proffy = req.query
-
-    //Object.keys() transforma o objeto em um array
-    const isEmpty = Object.keys(proffy).length == 0
-
-    //Adiciona na lista de professores
-    if (!isEmpty){
-        proffys.subject = getSubject(proffys.subject)
-        proffys.push(proffy)
-        return res.redirect('/study')
-    }
     return res.render('give-classes.html', {subjects, weekdays})
+})
+
+server.post("/give-classes", async (req, res) => {
+    const createProffy = require('./database/createProffy.js')
+    const data = req.body
+
+    const proffyValue = {
+        name: data.name,
+        avatar: data.avatar,
+        whatsapp: data.whatsapp,
+        bio: data.bio
+    }
+
+    const classValue = {
+        subject: data.subject,
+        cost: data.cost
+    }
+
+    const classScheduleValues = data.weekday.map((value, index) => {
+        return {
+            weekday: value,
+            time_from: convertHoursToMinutes(data.time_from[index]),
+            time_to: convertHoursToMinutes(data.time_to[index]),
+        }
+    })
+
+    try {
+        const db = await database
+        await createProffy(db, {proffyValue, classValue, classScheduleValues});
+        let queryString = "?subject=" + data.subject;
+        queryString += "&weekday=" + data.weekday[0];
+        queryString += "&time=" + data.time_from[0];
+        return res.redirect('/study' + queryString)
+        
+    } catch (error) {
+        console.log(error)
+    }
 })
 
 /*------------------------------------/
