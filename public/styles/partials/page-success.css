@@ -1,0 +1,29 @@
+#page-success {
+    background-color: var(--color-primary);
+    background-image: url('/images/success-background.svg');
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.card img {
+    width: 20rem;
+    margin: 10px;
+}
+
+.card h2 {
+    text-align: center;
+    font: 700 4.5rem Archivo;
+    color: var(--color-title-in-primary);
+    margin-bottom: 1.6rem;
+}
+
+.card p {
+    text-align: center;
+    line-height: 2.4rem;
+    color: var(--color-text-in-primary);
+}

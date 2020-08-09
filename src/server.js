@@ -5,6 +5,7 @@ const nunjucks = require('nunjucks')
 const database = require('./database/db.js')
 
 const { subjects, weekdays, getSubject, convertHoursToMinutes } = require('./utils/format.js')
+const { query } = require('express')
 
 /* Configurar nunjucks */
 nunjucks.configure('src/views', {
@@ -32,33 +33,17 @@ server.get("/", (req, res) => {
 server.get("/study", async (req, res) => {
     /* Req.query armazena os dados do formulário mandados por URL */
     const filters = req.query
+    const consultProffy = require('./database/consultProffy.js')
 
     if (!filters.subject || !filters.weekday || !filters.time){
         return res.render('study.html', {filters, subjects, weekdays})
     }
 
-    //Converter horas em minutos
-    const timeToMinutes = convertHoursToMinutes(filters.time)
-
-    const query = `
-        SELECT classes.*, proffys.*
-        FROM proffys
-        JOIN classes ON (classes.proffy_id = proffys.id)
-        WHERE EXISTS (
-            SELECT class_schedule.*
-            FROM class_schedule
-            WHERE class_schedule.class_id = classes.id
-            AND class_schedule.weekday = ${filters.weekday}
-            AND class_schedule.time_from <= ${timeToMinutes}
-            AND class_schedule.time_to > ${timeToMinutes}
-        )
-        AND classes.subject = ${filters.subject}
-    `
-
     try {
         const db = await database
-        const proffys = await db.all(query)
+        const proffys = await consultProffy(db, filters)
         proffys.map(proffy => {
+            //Transforma o indice do subject no seu nome verdadeiro
             proffy.subject = getSubject(proffy.subject)
         })
         return res.render('study.html', {proffys, filters, subjects, weekdays})
@@ -87,6 +72,7 @@ server.post("/give-classes", async (req, res) => {
         cost: data.cost
     }
 
+    /* Transoforma os horários de hora para minuto */
     const classScheduleValues = data.weekday.map((value, index) => {
         return {
             weekday: value,
@@ -101,11 +87,14 @@ server.post("/give-classes", async (req, res) => {
         let queryString = "?subject=" + data.subject;
         queryString += "&weekday=" + data.weekday[0];
         queryString += "&time=" + data.time_from[0];
-        return res.redirect('/study' + queryString)
-        
+        return res.redirect('/success'+queryString);
     } catch (error) {
         console.log(error)
     }
+})
+
+server.get('/success', (req, res) => {
+    res.render('success.html')
 })
 
 /*------------------------------------/

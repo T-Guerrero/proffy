@@ -46,6 +46,21 @@
     color: var(--color-primary-dark);
 }
 
+#page-give-classes fieldset .schedule-item button {
+    background: none;
+    border: 0;
+    margin-bottom: 1rem;
+    font: 700 2rem Archivo;
+    color: red;
+    width: 2rem;
+    height: 2rem;
+    transition: color 0.2s;
+}
+
+#page-give-classes fieldset .schedule-item button:hover {
+    color: rgb(202, 5, 5);
+}
+
 /*Elementos em sequência (aplica no segundo)*/
 #page-give-classes fieldset+fieldset,
 #page-give-classes fieldset .input-block+.input-block,
@@ -114,7 +129,7 @@
         padding: 0 64px;
     }
 
-    #page-give-classes .schedule-item {
+    #page-give-classes .schedule-item .fields {
         display: grid;
         grid-template-columns: 2fr 1fr 1fr;
         gap: 1.6rem;

@@ -72,27 +72,31 @@
                 <fieldset id="schedule-items">
                     <legend>
                         Horários disponíveis
-                        <button type="button" id="add-time">+ Novo Horário</button></legend>
+                        <button type="button" id="add-time">+ Novo Horário</button>
+                    </legend>
                         <div class="schedule-item">
-                            <div class="select-block">
-                                <label for="weekday">Dia da semana</label>
-                                <!-- weekday[] === Pode selecionar mais de um valor -->
-                                <select name="weekday[]" required>
-                                    <option value="">Selecione uma opção</option>
-                                    {% for weekday in weekdays%}
+                            <button type="button" class="remove-time">X</button>
+                            <div class="fields">
+                                <div class="select-block">
+                                    <label for="weekday">Dia da semana</label>
+                                    <!-- weekday[] === Pode selecionar mais de um valor -->
+                                    <select name="weekday[]" required>
+                                        <option value="">Selecione uma opção</option>
+                                        {% for weekday in weekdays%}
                                         <option value="{{loop.index0}}">{{weekday}}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-            
-                            <div class="input-block">
-                                <label for="time_from">Das</label>
-                                <input name="time_from[]" type="time" required>
-                            </div>
-            
-                            <div class="input-block">
-                                <label for="time_to">Até</label>
-                                <input name="time_to[]" type="time" required>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                
+                                <div class="input-block">
+                                    <label for="time_from">Das</label>
+                                    <input name="time_from[]" type="time" required>
+                                </div>
+                
+                                <div class="input-block">
+                                    <label for="time_to">Até</label>
+                                    <input name="time_to[]" type="time" required>
+                                </div>
                             </div>
                         </div>        
                 </fieldset>

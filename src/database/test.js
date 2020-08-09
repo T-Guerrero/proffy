@@ -33,7 +33,7 @@ database.then(async (db) => {
 
 
     //Insert data
-    // await createProffy(db, {proffyValue, classValue, classScheduleValues});
+    await createProffy(db, {proffyValue, classValue, classScheduleValues});
 
 
     //Consult data
