@@ -1,7 +1,7 @@
-# proffy
+# Proffy
 
 ## About
-Proffy is a system made for teachers to promote private lessons and find new students. It was made in Rocketseat Next Level Week 2. 
+Proffy is a system designed for teachers to promote private lessons and find new students. It was made in Next Level Week 2 powered by Rocketseat. 
 
 ## Technologies
 It was used:
@@ -12,6 +12,7 @@ It was used:
   * SQLite
 
 ## Running
+Run the following commands to start the server at `localhost:3000`:
 
 ```bash
 $> npm install
